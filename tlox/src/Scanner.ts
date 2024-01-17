@@ -1,4 +1,4 @@
-import TokenType from "./TokenType";
+import { TokenType } from "./TokenType.enum";
 import Token from "./Token";
 import Lox from "./Lox";
 

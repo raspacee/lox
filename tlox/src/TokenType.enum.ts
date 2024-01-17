@@ -1,4 +1,4 @@
-enum TokenType {
+export enum TokenType {
   // Single-character tokens.
   LEFT_PAREN,
   RIGHT_PAREN,
@@ -47,5 +47,3 @@ enum TokenType {
 
   EOF,
 }
-
-export default TokenType;

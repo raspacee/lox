@@ -1,4 +1,4 @@
-import TokenType from "./TokenType";
+import { TokenType } from "./TokenType.enum";
 
 class Token {
   readonly type: TokenType;
