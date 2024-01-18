@@ -12,7 +12,7 @@ class AstPrinter implements Visitor<string> {
   }
 
   public visitGroupingExpr(expr: Grouping): string {
-    return this.parenthesize("", expr.expression);
+    return this.parenthesize("group", expr.expression);
   }
 
   public visitLiteralExpr(expr: Literal): string {
@@ -24,15 +24,16 @@ class AstPrinter implements Visitor<string> {
     return this.parenthesize(expr.operator.lexeme, expr.right);
   }
 
-  private parenthesize(operator: string, ...exprs: Expr[]) {
+  private parenthesize(name: string, ...exprs: Expr[]) {
     let result = "";
 
+    result += "(" + name;
     for (let expr of exprs) {
       result += " ";
       result += expr.accept(this);
     }
 
-    result += " " + operator;
+    result += ")";
 
     return result;
   }
@@ -59,4 +60,4 @@ class AstPrinter implements Visitor<string> {
   }
 }
 
-AstPrinter.main();
+export default AstPrinter;

@@ -4,6 +4,9 @@ import readline from "node:readline";
 
 import Token from "./Token";
 import Scanner from "./Scanner";
+import { TokenType } from "./TokenType.enum";
+import Parser from "./Parser";
+import AstPrinter from "./AstPrinter";
 
 class Lox {
   static hadError: boolean = false;
@@ -54,11 +57,11 @@ class Lox {
   private static run(source: string): void {
     let scanner: Scanner = new Scanner(source);
     let tokens = scanner.scanTokens();
+    let parser: Parser = new Parser(tokens);
+    let expr = parser.parse();
 
-    let token: Token;
-    for (token of tokens) {
-      console.log(token);
-    }
+    if (this.hadError || expr == null) return;
+    console.log(new AstPrinter().print(expr));
   }
 
   public static error(line: number, message: string): void {
@@ -68,6 +71,12 @@ class Lox {
   private static report(line: number, where: string, message: string): void {
     console.log("[line " + line + "] Error" + where + ": " + message);
     this.hadError = true;
+  }
+
+  static error2(token: Token, message: string): void {
+    if (token.type == TokenType.EOF)
+      this.report(token.line, " at end", message);
+    else this.report(token.line, " at '" + token.lexeme + "'", message);
   }
 }
 
