@@ -22,7 +22,17 @@ class Parser {
   }
 
   private expression(): Expr {
-    return this.equality();
+    return this.comma();
+  }
+
+  private comma(): Expr {
+    let expr: Expr = this.equality();
+    // Need to evaluate expr here
+
+    if (this.match(TokenType.COMMA)) {
+      return this.expression();
+    }
+    return expr;
   }
 
   private equality(): Expr {
