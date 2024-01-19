@@ -57,9 +57,9 @@ class Grouping extends Expr {
 }
 
 class Literal extends Expr {
-  readonly value: Object | null;
+  readonly value: Object;
 
-  constructor(value: Object | null) {
+  constructor(value: Object) {
     super();
     this.value = value;
   }

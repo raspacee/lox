@@ -7,9 +7,13 @@ import Scanner from "./Scanner";
 import { TokenType } from "./TokenType.enum";
 import Parser from "./Parser";
 import AstPrinter from "./AstPrinter";
+import RuntimeError from "./RuntimeError";
+import Interpreter from "./Interpreter";
 
 class Lox {
+  private static readonly interpreter = new Interpreter();
   static hadError: boolean = false;
+  static hadRuntimeError: boolean = false;
 
   public static main(args: string[]): void {
     if (args.length > 2) {
@@ -29,6 +33,7 @@ class Lox {
     this.run(content);
 
     if (this.hadError) process.exit(65);
+    if (this.hadRuntimeError) process.exit(70);
   }
 
   private static async runPrompt(): Promise<void> {
@@ -43,11 +48,10 @@ class Lox {
         });
       });
     };
-    let flag = true;
 
-    while (flag) {
+    while (true) {
       const line = await getLine("> ");
-      if (line == "\0") flag = false;
+      if (line == "\0") break;
       this.run(line);
       this.hadError = false;
     }
@@ -60,8 +64,8 @@ class Lox {
     let parser: Parser = new Parser(tokens);
     let expr = parser.parse();
 
-    if (this.hadError || expr == null) return;
-    console.log(new AstPrinter().print(expr));
+    if (this.hadError) return;
+    this.interpreter.interpret(expr);
   }
 
   public static error(line: number, message: string): void {
@@ -77,6 +81,11 @@ class Lox {
     if (token.type == TokenType.EOF)
       this.report(token.line, " at end", message);
     else this.report(token.line, " at '" + token.lexeme + "'", message);
+  }
+
+  static runtimeError(error: RuntimeError): void {
+    console.log(error.message + "\n[line " + error.token.line + "]");
+    this.hadRuntimeError = true;
   }
 }
 
