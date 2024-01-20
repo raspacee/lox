@@ -1,7 +1,7 @@
 import Token from "./Token";
 import { Expr, Binary, Unary, Literal, Grouping } from "./Expr";
 import { TokenType } from "./TokenType.enum";
-import { Lox } from "./Index";
+import { Lox, Stmt, Print, Expression } from "./Index";
 
 class ParseError extends Error {}
 
@@ -13,12 +13,34 @@ export class Parser {
     this.tokens = tokens;
   }
 
-  parse(): Expr {
+  parse(): Stmt[] {
     try {
-      return this.expression();
-    } catch (error) {
+      let statements: Stmt[] = [];
+
+      while (!this.isAtEnd()) {
+        statements.push(this.statement());
+      }
+      return statements;
+    } catch (err) {
       return null;
     }
+  }
+
+  private statement(): Stmt {
+    if (this.match(TokenType.PRINT)) return this.printStatement();
+    return this.expressionStatement();
+  }
+
+  private printStatement(): Stmt {
+    let value = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value");
+    return new Print(value);
+  }
+
+  private expressionStatement(): Stmt {
+    let value = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value");
+    return new Expression(value);
   }
 
   private expression(): Expr {

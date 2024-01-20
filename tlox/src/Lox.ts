@@ -4,7 +4,7 @@ import readline from "node:readline";
 
 import Token from "./Token";
 import { TokenType } from "./TokenType.enum";
-import { Parser, Scanner } from "./Index";
+import { Parser, Scanner, Stmt } from "./Index";
 import RuntimeError from "./RuntimeError";
 import Interpreter from "./Interpreter";
 
@@ -60,10 +60,10 @@ export class Lox {
     let scanner: Scanner = new Scanner(source);
     let tokens = scanner.scanTokens();
     let parser: Parser = new Parser(tokens);
-    let expr = parser.parse();
+    let statements: Stmt[] = parser.parse();
 
     if (this.hadError) return;
-    this.interpreter.interpret(expr);
+    this.interpreter.interpret(statements);
   }
 
   public static error(line: number, message: string): void {
