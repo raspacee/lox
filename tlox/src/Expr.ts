@@ -9,6 +9,7 @@ interface Visitor<R> {
   visitUnaryExpr(expr: Unary): R;
   visitGroupingExpr(expr: Grouping): R;
   visitLiteralExpr(expr: Literal): R;
+  visitVariableExpr(expr: Variable): R;
 }
 
 class Binary extends Expr {
@@ -69,4 +70,17 @@ class Literal extends Expr {
   }
 }
 
-export { Visitor, Binary, Unary, Literal, Grouping, Expr };
+class Variable extends Expr {
+  readonly name: Token;
+
+  constructor(name: Token) {
+    super();
+    this.name = name;
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitVariableExpr(this);
+  }
+}
+
+export { Visitor, Binary, Unary, Literal, Grouping, Expr, Variable };

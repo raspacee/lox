@@ -1,7 +1,7 @@
 import Token from "./Token";
-import { Expr, Binary, Unary, Literal, Grouping } from "./Expr";
+import { Expr, Binary, Unary, Literal, Grouping, Variable } from "./Expr";
 import { TokenType } from "./TokenType.enum";
-import { Lox, Stmt, Print, Expression } from "./Index";
+import { Lox, Stmt, Print, Expression, Var } from "./Index";
 
 class ParseError extends Error {}
 
@@ -18,12 +18,35 @@ export class Parser {
       let statements: Stmt[] = [];
 
       while (!this.isAtEnd()) {
-        statements.push(this.statement());
+        statements.push(this.declaration());
       }
       return statements;
     } catch (err) {
       return null;
     }
+  }
+
+  private declaration(): Stmt {
+    try {
+      if (this.match(TokenType.VAR)) return this.varDeclaration();
+      return this.statement();
+    } catch (err) {
+      this.synchronize();
+      return null;
+    }
+  }
+
+  private varDeclaration(): Stmt {
+    const name: Token = this.consume(
+      TokenType.IDENTIFIER,
+      "Expect variable name."
+    );
+
+    let initializer: Expr = null;
+    if (this.match(TokenType.EQUAL)) initializer = this.expression();
+
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+    return new Var(name, initializer);
   }
 
   private statement(): Stmt {
@@ -121,6 +144,8 @@ export class Parser {
     if (this.match(TokenType.FALSE)) return new Literal(false);
     if (this.match(TokenType.TRUE)) return new Literal(true);
     if (this.match(TokenType.NIL)) return new Literal(null);
+
+    if (this.match(TokenType.IDENTIFIER)) return new Variable(this.previous());
 
     if (this.match(TokenType.NUMBER, TokenType.STRING))
       return new Literal(this.previous().literal);

@@ -5,13 +5,17 @@ import {
   Literal,
   Unary,
   Visitor as ExprVisitor,
+  Variable,
 } from "./Expr";
-import { Expression, Lox, Stmt, Visitor as StmtVisitor } from "./Index";
+import { Expression, Lox, Stmt, Visitor as StmtVisitor, Var } from "./Index";
 import RuntimeError from "./RuntimeError";
 import Token from "./Token";
 import { TokenType } from "./TokenType.enum";
+import { Environment } from "./Environment";
 
 class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
+  private environment = new Environment();
+
   interpret(statements: Stmt[]): void {
     try {
       for (let statement of statements) {
@@ -20,6 +24,18 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     } catch (error) {
       if (error instanceof RuntimeError) Lox.runtimeError(error);
     }
+  }
+
+  public visitVarStmt(stmt: Var): void {
+    let value: Object = null;
+    if (stmt.initializer != null) value = this.evaluate(stmt.initializer);
+
+    this.environment.define(stmt.name.lexeme, value);
+    return null;
+  }
+
+  public visitVariableExpr(expr: Variable): Object {
+    return this.environment.get(expr.name);
   }
 
   public visitExpressionStmt(stmt: Expression): void {
