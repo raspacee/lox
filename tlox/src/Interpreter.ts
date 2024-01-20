@@ -49,7 +49,11 @@ class Interpreter implements Visitor<Object> {
         {
           if (typeof left === "number" && typeof right === "number")
             return (left as number) + (right as number);
-          else if (typeof left === "string" && typeof right === "string")
+          else if (
+            (typeof left === "string" && typeof right === "string") ||
+            typeof left === "string" ||
+            typeof right === "string"
+          )
             return (left as string) + (right as string);
           throw new RuntimeError(
             expr.operator,
