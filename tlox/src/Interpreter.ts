@@ -1,5 +1,5 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "./Expr";
-import Lox from "./Lox";
+import { Lox } from "./Index";
 import RuntimeError from "./RuntimeError";
 import Token from "./Token";
 import { TokenType } from "./TokenType.enum";

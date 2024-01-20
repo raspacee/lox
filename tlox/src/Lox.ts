@@ -3,14 +3,12 @@ import path from "path";
 import readline from "node:readline";
 
 import Token from "./Token";
-import Scanner from "./Scanner";
 import { TokenType } from "./TokenType.enum";
-import Parser from "./Parser";
-import AstPrinter from "./AstPrinter";
+import { Parser, Scanner } from "./Index";
 import RuntimeError from "./RuntimeError";
 import Interpreter from "./Interpreter";
 
-class Lox {
+export class Lox {
   private static readonly interpreter = new Interpreter();
   static hadError: boolean = false;
   static hadRuntimeError: boolean = false;
@@ -77,10 +75,12 @@ class Lox {
     this.hadError = true;
   }
 
-  static error2(token: Token, message: string): void {
-    if (token.type == TokenType.EOF)
+  public static errorParser(token: Token, message: string): void {
+    if (token.type == TokenType.EOF) {
       this.report(token.line, " at end", message);
-    else this.report(token.line, " at '" + token.lexeme + "'", message);
+    } else {
+      this.report(token.line, " at '" + token.lexeme + "'", message);
+    }
   }
 
   static runtimeError(error: RuntimeError): void {
@@ -90,5 +90,3 @@ class Lox {
 }
 
 Lox.main(process.argv.splice(1));
-
-export default Lox;

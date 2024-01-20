@@ -1,8 +1,8 @@
 import { TokenType } from "./TokenType.enum";
 import Token from "./Token";
-import Lox from "./Lox";
+import { Lox } from "./Index";
 
-class Scanner {
+export class Scanner {
   private readonly source: string;
   private readonly tokens: Token[] = [];
   private start: number = 0;
@@ -225,5 +225,3 @@ class Scanner {
     this.tokens.push(new Token(type, text, literal, this.line));
   }
 }
-
-export default Scanner;

@@ -1,11 +1,11 @@
 import Token from "./Token";
 import { Expr, Binary, Unary, Literal, Grouping } from "./Expr";
 import { TokenType } from "./TokenType.enum";
-import Lox from "./Lox";
+import { Lox } from "./Index";
 
 class ParseError extends Error {}
 
-class Parser {
+export class Parser {
   private readonly tokens: Token[];
   private current: number = 0;
 
@@ -13,7 +13,7 @@ class Parser {
     this.tokens = tokens;
   }
 
-  parse(): Expr | null {
+  parse(): Expr {
     try {
       return this.expression();
     } catch (error) {
@@ -128,7 +128,8 @@ class Parser {
   }
 
   private error(token: Token, message: string): ParseError {
-    Lox.error2(token, message);
+    // Lox.error(token.line, message);
+    Lox.errorParser(token, message);
     return new ParseError();
   }
 
@@ -175,5 +176,3 @@ class Parser {
     return this.tokens[this.current - 1];
   }
 }
-
-export default Parser;
