@@ -11,6 +11,24 @@ interface Visitor<R> {
   visitLiteralExpr(expr: Literal): R;
   visitVariableExpr(expr: Variable): R;
   visitAssignExpr(expr: Assign): R;
+  visitLogicalExpr(expr: Logical): R;
+}
+
+class Logical extends Expr {
+  readonly left: Expr;
+  readonly operator: Token;
+  readonly right: Expr;
+
+  constructor(left: Expr, operator: Token, right: Expr) {
+    super();
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitLogicalExpr(this);
+  }
 }
 
 class Assign extends Expr {
@@ -99,4 +117,14 @@ class Variable extends Expr {
   }
 }
 
-export { Visitor, Binary, Unary, Literal, Grouping, Expr, Variable, Assign };
+export {
+  Visitor,
+  Binary,
+  Unary,
+  Literal,
+  Grouping,
+  Expr,
+  Variable,
+  Assign,
+  Logical,
+};

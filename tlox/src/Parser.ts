@@ -7,9 +7,10 @@ import {
   Grouping,
   Variable,
   Assign,
+  Logical,
 } from "./Expr";
 import { TokenType } from "./TokenType.enum";
-import { Lox, Stmt, Print, Expression, Var, Block } from "./Index";
+import { Lox, Stmt, Print, Expression, Var, Block, If } from "./Index";
 
 class ParseError extends Error {}
 
@@ -60,7 +61,20 @@ export class Parser {
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
+    if (this.match(TokenType.IF)) return this.ifStatement();
     return this.expressionStatement();
+  }
+
+  private ifStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after if.");
+    let condition: Expr = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+    let thenBranch: Stmt = this.statement();
+    let elseBranch: Stmt = null;
+    if (this.match(TokenType.ELSE)) elseBranch = this.statement();
+
+    return new If(condition, thenBranch, elseBranch);
   }
 
   private printStatement(): Stmt {
@@ -90,7 +104,7 @@ export class Parser {
   }
 
   private assignment(): Expr {
-    let expr: Expr = this.equality();
+    let expr: Expr = this.or();
 
     if (this.match(TokenType.EQUAL)) {
       let equals: Token = this.previous();
@@ -104,6 +118,28 @@ export class Parser {
       this.error(equals, "Invalid assignment target.");
     }
 
+    return expr;
+  }
+
+  private or(): Expr {
+    let expr: Expr = this.and();
+
+    while (this.match(TokenType.OR)) {
+      let operator: Token = this.previous();
+      let right: Expr = this.and();
+      return new Logical(expr, operator, right);
+    }
+    return expr;
+  }
+
+  private and(): Expr {
+    let expr: Expr = this.equality();
+
+    while (this.match(TokenType.AND)) {
+      let operator: Token = this.previous();
+      let right: Expr = this.equality();
+      return new Logical(expr, operator, right);
+    }
     return expr;
   }
 

@@ -7,10 +7,12 @@ import {
   Visitor as ExprVisitor,
   Variable,
   Assign,
+  Logical,
 } from "./Expr";
 import {
   Block,
   Expression,
+  If,
   Lox,
   Stmt,
   Visitor as StmtVisitor,
@@ -32,6 +34,27 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     } catch (error) {
       if (error instanceof RuntimeError) Lox.runtimeError(error);
     }
+  }
+
+  public visitLogicalExpr(expr: Logical): Object {
+    let left: Object = this.evaluate(expr.left);
+
+    if (expr.operator.type == TokenType.OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      if (!this.isTruthy(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
+  }
+
+  public visitIfStmt(stmt: If): void {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch != null) {
+      this.execute(stmt.elseBranch);
+    }
+    return null;
   }
 
   public visitBlockStmt(expr: Block): void {
