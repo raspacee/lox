@@ -7,10 +7,26 @@ export interface Visitor<R> {
   visitVarStmt(stmt: Var): R;
   visitBlockStmt(stmt: Block): R;
   visitIfStmt(stmt: If): R;
+  visitWhileStmt(stmt: While): R;
 }
 
 export abstract class Stmt {
   abstract accept<R>(visitor: Visitor<R>): R;
+}
+
+export class While extends Stmt {
+  readonly condition: Expr;
+  readonly body: Stmt;
+
+  constructor(condition: Expr, body: Stmt) {
+    super();
+    this.condition = condition;
+    this.body = body;
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitWhileStmt(this);
+  }
 }
 
 export class If extends Stmt {

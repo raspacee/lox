@@ -10,7 +10,7 @@ import {
   Logical,
 } from "./Expr";
 import { TokenType } from "./TokenType.enum";
-import { Lox, Stmt, Print, Expression, Var, Block, If } from "./Index";
+import { Lox, Stmt, Print, Expression, Var, Block, If, While } from "./Index";
 
 class ParseError extends Error {}
 
@@ -62,11 +62,50 @@ export class Parser {
     if (this.match(TokenType.PRINT)) return this.printStatement();
     if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     if (this.match(TokenType.IF)) return this.ifStatement();
+    if (this.match(TokenType.WHILE)) return this.whileStatement();
+    if (this.match(TokenType.FOR)) return this.forStatement();
     return this.expressionStatement();
   }
 
+  private forStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+
+    let initializer: Stmt;
+    if (this.match(TokenType.SEMICOLON)) initializer = null;
+    else if (this.match(TokenType.VAR)) initializer = this.varDeclaration();
+    else initializer = this.expressionStatement();
+
+    let condition: Expr = null;
+    if (!this.check(TokenType.SEMICOLON)) condition = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after condition.");
+
+    let increment: Expr = null;
+    if (!this.check(TokenType.SEMICOLON)) increment = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after 'for' clauses.");
+
+    let body: Stmt = this.statement();
+    if (increment != null) {
+      body = new Block([body, new Expression(increment)]);
+    }
+
+    if (condition == null) condition = new Literal(true);
+    body = new While(condition, body);
+
+    if (initializer != null) body = new Block([initializer, body]);
+
+    return body;
+  }
+
+  private whileStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+    let condition: Expr = this.expression();
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+    let body: Stmt = this.statement();
+    return new While(condition, body);
+  }
+
   private ifStatement(): Stmt {
-    this.consume(TokenType.LEFT_PAREN, "Expect '(' after if.");
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
     let condition: Expr = this.expression();
     this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
 

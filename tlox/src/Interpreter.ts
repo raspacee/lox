@@ -17,6 +17,7 @@ import {
   Stmt,
   Visitor as StmtVisitor,
   Var,
+  While,
 } from "./Index";
 import RuntimeError from "./RuntimeError";
 import Token from "./Token";
@@ -34,6 +35,13 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     } catch (error) {
       if (error instanceof RuntimeError) Lox.runtimeError(error);
     }
+  }
+
+  public visitWhileStmt(stmt: While): void {
+    while (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.body);
+    }
+    return null;
   }
 
   public visitLogicalExpr(expr: Logical): Object {
@@ -82,7 +90,6 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
 
   public visitExpressionStmt(stmt: Expression): void {
     let value = this.evaluate(stmt.expression);
-    console.log(value);
     return null;
   }
 
