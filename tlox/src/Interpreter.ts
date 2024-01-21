@@ -6,8 +6,16 @@ import {
   Unary,
   Visitor as ExprVisitor,
   Variable,
+  Assign,
 } from "./Expr";
-import { Expression, Lox, Stmt, Visitor as StmtVisitor, Var } from "./Index";
+import {
+  Block,
+  Expression,
+  Lox,
+  Stmt,
+  Visitor as StmtVisitor,
+  Var,
+} from "./Index";
 import RuntimeError from "./RuntimeError";
 import Token from "./Token";
 import { TokenType } from "./TokenType.enum";
@@ -24,6 +32,17 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     } catch (error) {
       if (error instanceof RuntimeError) Lox.runtimeError(error);
     }
+  }
+
+  public visitBlockStmt(expr: Block): void {
+    this.executeBlock(expr.statements, new Environment(this.environment));
+    return null;
+  }
+
+  public visitAssignExpr(expr: Assign): Object {
+    let value: Object = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
   }
 
   public visitVarStmt(stmt: Var): void {
@@ -169,6 +188,19 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
 
   private execute(stmt: Stmt): void {
     return stmt.accept(this);
+  }
+
+  private executeBlock(statements: Stmt[], environment: Environment): void {
+    let previous = this.environment;
+    try {
+      this.environment = environment;
+
+      for (let statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this.environment = previous;
+    }
   }
 }
 

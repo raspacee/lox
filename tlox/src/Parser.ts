@@ -1,7 +1,15 @@
 import Token from "./Token";
-import { Expr, Binary, Unary, Literal, Grouping, Variable } from "./Expr";
+import {
+  Expr,
+  Binary,
+  Unary,
+  Literal,
+  Grouping,
+  Variable,
+  Assign,
+} from "./Expr";
 import { TokenType } from "./TokenType.enum";
-import { Lox, Stmt, Print, Expression, Var } from "./Index";
+import { Lox, Stmt, Print, Expression, Var, Block } from "./Index";
 
 class ParseError extends Error {}
 
@@ -51,6 +59,7 @@ export class Parser {
 
   private statement(): Stmt {
     if (this.match(TokenType.PRINT)) return this.printStatement();
+    if (this.match(TokenType.LEFT_BRACE)) return new Block(this.block());
     return this.expressionStatement();
   }
 
@@ -66,8 +75,36 @@ export class Parser {
     return new Expression(value);
   }
 
+  private block(): Stmt[] {
+    let statements: Stmt[] = [];
+
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd())
+      statements.push(this.declaration());
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
+  }
+
   private expression(): Expr {
-    return this.comma();
+    return this.assignment();
+  }
+
+  private assignment(): Expr {
+    let expr: Expr = this.equality();
+
+    if (this.match(TokenType.EQUAL)) {
+      let equals: Token = this.previous();
+      let value: Expr = this.assignment();
+
+      if (expr instanceof Variable) {
+        let name: Token = (expr as Variable).name;
+        return new Assign(name, value);
+      }
+
+      this.error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
   }
 
   private comma(): Expr {

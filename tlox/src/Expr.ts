@@ -10,6 +10,22 @@ interface Visitor<R> {
   visitGroupingExpr(expr: Grouping): R;
   visitLiteralExpr(expr: Literal): R;
   visitVariableExpr(expr: Variable): R;
+  visitAssignExpr(expr: Assign): R;
+}
+
+class Assign extends Expr {
+  readonly name: Token;
+  readonly value: Expr;
+
+  constructor(name: Token, value: Expr) {
+    super();
+    this.name = name;
+    this.value = value;
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitAssignExpr(this);
+  }
 }
 
 class Binary extends Expr {
@@ -83,4 +99,4 @@ class Variable extends Expr {
   }
 }
 
-export { Visitor, Binary, Unary, Literal, Grouping, Expr, Variable };
+export { Visitor, Binary, Unary, Literal, Grouping, Expr, Variable, Assign };
