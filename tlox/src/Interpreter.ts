@@ -59,6 +59,7 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
 
   public visitExpressionStmt(stmt: Expression): void {
     let value = this.evaluate(stmt.expression);
+    console.log(value);
     return null;
   }
 
