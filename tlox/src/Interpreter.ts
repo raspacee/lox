@@ -8,11 +8,13 @@ import {
   Variable,
   Assign,
   Logical,
+  Call,
 } from "./Expr";
 import {
   Block,
   Break,
   Expression,
+  Function,
   If,
   Lox,
   Stmt,
@@ -24,11 +26,33 @@ import RuntimeError from "./RuntimeError";
 import Token from "./Token";
 import { TokenType } from "./TokenType.enum";
 import { Environment } from "./Environment";
+import { LoxCallable } from "./LoxCallable";
+import { LoxFunction } from "./LoxFunction";
 
 class BreakStop extends Error {}
 
 class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
-  private environment = new Environment();
+  readonly globals = new Environment();
+  private environment = this.globals;
+
+  constructor() {
+    this.globals.define(
+      "clock",
+      new (class extends LoxCallable {
+        public arity(): number {
+          return 0;
+        }
+
+        public call(interpreter: Interpreter, args: Object[]) {
+          return Math.floor(new Date().getTime() / 1000);
+        }
+
+        public toString(): string {
+          return "<native fn>";
+        }
+      })()
+    );
+  }
 
   interpret(statements: Stmt[]): void {
     try {
@@ -38,6 +62,36 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     } catch (error) {
       if (error instanceof RuntimeError) Lox.runtimeError(error);
     }
+  }
+
+  public visitFunctionStmt(stmt: Function): void {
+    let func = new LoxFunction(stmt);
+    this.environment.define(stmt.name.lexeme, func);
+    return null;
+  }
+
+  public visitCallExpr(expr: Call): Object {
+    let callee: Object = this.evaluate(expr.callee);
+
+    let args: Object[] = [];
+    for (let arg of expr.args) {
+      args.push(this.evaluate(arg));
+    }
+
+    if (!(callee instanceof LoxCallable)) {
+      throw new RuntimeError(
+        expr.paren,
+        "Can only call functions and classes."
+      );
+    }
+
+    let func: LoxCallable = callee as LoxCallable;
+    if (args.length != func.arity())
+      throw new RuntimeError(
+        expr.paren,
+        `Expected ${func.arity()} arguments but got ${args.length}.`
+      );
+    return func.call(this, args);
   }
 
   public visitBreakStmt(stmt: Break): void {
@@ -232,7 +286,7 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     return stmt.accept(this);
   }
 
-  private executeBlock(statements: Stmt[], environment: Environment): void {
+  public executeBlock(statements: Stmt[], environment: Environment): void {
     let previous = this.environment;
     try {
       this.environment = environment;

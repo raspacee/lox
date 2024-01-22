@@ -12,6 +12,24 @@ interface Visitor<R> {
   visitVariableExpr(expr: Variable): R;
   visitAssignExpr(expr: Assign): R;
   visitLogicalExpr(expr: Logical): R;
+  visitCallExpr(expr: Call): R;
+}
+
+class Call extends Expr {
+  readonly callee: Expr;
+  readonly paren: Token;
+  readonly args: Expr[];
+
+  constructor(callee: Expr, paren: Token, args: Expr[]) {
+    super();
+    this.callee = callee;
+    this.paren = paren;
+    this.args = args;
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitCallExpr(this);
+  }
 }
 
 class Logical extends Expr {
@@ -127,4 +145,5 @@ export {
   Variable,
   Assign,
   Logical,
+  Call,
 };
