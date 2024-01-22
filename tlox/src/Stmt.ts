@@ -8,6 +8,7 @@ export interface Visitor<R> {
   visitBlockStmt(stmt: Block): R;
   visitIfStmt(stmt: If): R;
   visitWhileStmt(stmt: While): R;
+  visitBreakStmt(stmt: Break): R;
 }
 
 export abstract class Stmt {
@@ -97,5 +98,15 @@ export class Var extends Stmt {
 
   accept<R>(visitor: Visitor<R>): R {
     return visitor.visitVarStmt(this);
+  }
+}
+
+export class Break extends Stmt {
+  constructor() {
+    super();
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitBreakStmt(this);
   }
 }

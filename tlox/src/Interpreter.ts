@@ -11,6 +11,7 @@ import {
 } from "./Expr";
 import {
   Block,
+  Break,
   Expression,
   If,
   Lox,
@@ -23,6 +24,8 @@ import RuntimeError from "./RuntimeError";
 import Token from "./Token";
 import { TokenType } from "./TokenType.enum";
 import { Environment } from "./Environment";
+
+class BreakStop extends Error {}
 
 class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
   private environment = new Environment();
@@ -37,9 +40,17 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     }
   }
 
+  public visitBreakStmt(stmt: Break): void {
+    throw new BreakStop();
+  }
+
   public visitWhileStmt(stmt: While): void {
-    while (this.isTruthy(this.evaluate(stmt.condition))) {
-      this.execute(stmt.body);
+    try {
+      while (this.isTruthy(this.evaluate(stmt.condition))) {
+        this.execute(stmt.body);
+      }
+    } catch (err) {
+      if (err instanceof BreakStop) return null;
     }
     return null;
   }

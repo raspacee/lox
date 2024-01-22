@@ -10,13 +10,25 @@ import {
   Logical,
 } from "./Expr";
 import { TokenType } from "./TokenType.enum";
-import { Lox, Stmt, Print, Expression, Var, Block, If, While } from "./Index";
+import {
+  Lox,
+  Stmt,
+  Print,
+  Expression,
+  Var,
+  Block,
+  If,
+  While,
+  Break,
+} from "./Index";
 
 class ParseError extends Error {}
 
 export class Parser {
   private readonly tokens: Token[];
   private current: number = 0;
+  private currentLoopStmt = false;
+  // Pointer to loop condition
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -64,7 +76,20 @@ export class Parser {
     if (this.match(TokenType.IF)) return this.ifStatement();
     if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.FOR)) return this.forStatement();
+    if (this.match(TokenType.BREAK)) return this.breakStatement();
     return this.expressionStatement();
+  }
+
+  private breakStatement(): Stmt {
+    if (!this.currentLoopStmt) {
+      let previous: Token = this.previous();
+      this.consume(TokenType.SEMICOLON, "Expect ';' after break.");
+      this.error(previous, "Break can only be used within enclosing loops.");
+      return null;
+    } else {
+      this.consume(TokenType.SEMICOLON, "Expect ';' after break.");
+      return new Break();
+    }
   }
 
   private forStatement(): Stmt {
@@ -83,6 +108,7 @@ export class Parser {
     if (!this.check(TokenType.SEMICOLON)) increment = this.expression();
     this.consume(TokenType.RIGHT_PAREN, "Expect ')' after 'for' clauses.");
 
+    this.currentLoopStmt = true;
     let body: Stmt = this.statement();
     if (increment != null) {
       body = new Block([body, new Expression(increment)]);
@@ -92,7 +118,7 @@ export class Parser {
     body = new While(condition, body);
 
     if (initializer != null) body = new Block([initializer, body]);
-
+    this.currentLoopStmt = false;
     return body;
   }
 
@@ -100,8 +126,11 @@ export class Parser {
     this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
     let condition: Expr = this.expression();
     this.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+    this.currentLoopStmt = true;
     let body: Stmt = this.statement();
-    return new While(condition, body);
+    let whileStmt = new While(condition, body);
+    this.currentLoopStmt = false;
+    return whileStmt;
   }
 
   private ifStatement(): Stmt {
