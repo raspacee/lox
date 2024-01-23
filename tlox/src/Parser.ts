@@ -22,6 +22,7 @@ import {
   While,
   Break,
   Function,
+  Return,
 } from "./Index";
 
 class ParseError extends Error {}
@@ -30,7 +31,6 @@ export class Parser {
   private readonly tokens: Token[];
   private current: number = 0;
   private currentLoopStmt = false;
-  // Pointer to loop condition
 
   constructor(tokens: Token[]) {
     this.tokens = tokens;
@@ -100,7 +100,18 @@ export class Parser {
     if (this.match(TokenType.WHILE)) return this.whileStatement();
     if (this.match(TokenType.FOR)) return this.forStatement();
     if (this.match(TokenType.BREAK)) return this.breakStatement();
+    if (this.match(TokenType.RETURN)) return this.returnStatement();
     return this.expressionStatement();
+  }
+
+  private returnStatement(): Stmt {
+    let keyword: Token = this.previous();
+    let value: Expr = null;
+    if (!this.check(TokenType.SEMICOLON)) {
+      value = this.expression();
+    }
+    this.consume(TokenType.SEMICOLON, `Expect ';' after return value.`);
+    return new Return(keyword, value);
   }
 
   private breakStatement(): Stmt {

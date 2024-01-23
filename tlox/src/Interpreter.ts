@@ -17,6 +17,7 @@ import {
   Function,
   If,
   Lox,
+  Return,
   Stmt,
   Visitor as StmtVisitor,
   Var,
@@ -30,6 +31,15 @@ import { LoxCallable } from "./LoxCallable";
 import { LoxFunction } from "./LoxFunction";
 
 class BreakStop extends Error {}
+
+export class ReturnStop extends Error {
+  readonly value: Object;
+
+  constructor(value: Object) {
+    super();
+    this.value = value;
+  }
+}
 
 class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
   readonly globals = new Environment();
@@ -62,6 +72,12 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     } catch (error) {
       if (error instanceof RuntimeError) Lox.runtimeError(error);
     }
+  }
+
+  public visitReturnStmt(stmt: Return): void {
+    let value: Object = null;
+    if (stmt.value != null) value = this.evaluate(stmt.value);
+    throw new ReturnStop(value);
   }
 
   public visitFunctionStmt(stmt: Function): void {

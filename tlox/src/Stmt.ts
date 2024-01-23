@@ -10,10 +10,26 @@ export interface Visitor<R> {
   visitWhileStmt(stmt: While): R;
   visitBreakStmt(stmt: Break): R;
   visitFunctionStmt(stmt: Function): R;
+  visitReturnStmt(stmt: Return): R;
 }
 
 export abstract class Stmt {
   abstract accept<R>(visitor: Visitor<R>): R;
+}
+
+export class Return extends Stmt {
+  readonly keyword: Token;
+  readonly value: Expr;
+
+  constructor(keyword: Token, value: Expr) {
+    super();
+    this.keyword = keyword;
+    this.value = value;
+  }
+
+  accept<R>(visitor: Visitor<R>): R {
+    return visitor.visitReturnStmt(this);
+  }
 }
 
 export class Function extends Stmt {

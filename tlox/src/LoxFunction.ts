@@ -2,6 +2,7 @@ import { Environment } from "./Environment";
 import Interpreter from "./Interpreter";
 import { LoxCallable } from "./LoxCallable";
 import { Function } from "./Stmt";
+import { ReturnStop } from "./Interpreter";
 
 export class LoxFunction extends LoxCallable {
   readonly declaration: Function;
@@ -17,7 +18,11 @@ export class LoxFunction extends LoxCallable {
       environment.define(this.declaration.params[i].lexeme, args[i]);
     }
 
-    interpreter.executeBlock(this.declaration.body, environment);
+    try {
+      interpreter.executeBlock(this.declaration.body, environment);
+    } catch (returnValue) {
+      if (returnValue instanceof ReturnStop) return returnValue.value;
+    }
     return null;
   }
 
