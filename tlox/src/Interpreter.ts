@@ -81,7 +81,7 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
   }
 
   public visitFunctionStmt(stmt: Function): void {
-    let func = new LoxFunction(stmt);
+    let func = new LoxFunction(stmt, this.environment);
     this.environment.define(stmt.name.lexeme, func);
     return null;
   }
