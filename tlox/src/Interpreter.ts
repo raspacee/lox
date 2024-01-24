@@ -44,6 +44,7 @@ export class ReturnStop extends Error {
 class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
   readonly globals = new Environment();
   private environment = this.globals;
+  private readonly locals: Map<Expr, number> = new Map();
 
   constructor() {
     this.globals.define(
@@ -72,6 +73,10 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
     } catch (error) {
       if (error instanceof RuntimeError) Lox.runtimeError(error);
     }
+  }
+
+  public resolve(expr: Expr, depth: number): void {
+    this.locals.set(expr, depth);
   }
 
   public visitReturnStmt(stmt: Return): void {
@@ -153,7 +158,13 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
 
   public visitAssignExpr(expr: Assign): Object {
     let value: Object = this.evaluate(expr.value);
-    this.environment.assign(expr.name, value);
+
+    let distance = this.locals.get(expr);
+    if (distance != null) {
+      this.environment.assignAt(distance, expr.name, value);
+    } else {
+      this.globals.assign(expr.name, value);
+    }
     return value;
   }
 
@@ -166,7 +177,16 @@ class Interpreter implements ExprVisitor<Object>, StmtVisitor<void> {
   }
 
   public visitVariableExpr(expr: Variable): Object {
-    return this.environment.get(expr.name);
+    return this.lookUpVariable(expr.name, expr);
+  }
+
+  private lookUpVariable(name: Token, expr: Expr): Object {
+    let distance = this.locals.get(expr);
+    if (distance != null) {
+      return this.environment.getAt(distance, name.lexeme);
+    } else {
+      return this.globals.get(name);
+    }
   }
 
   public visitExpressionStmt(stmt: Expression): void {

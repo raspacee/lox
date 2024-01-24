@@ -13,6 +13,23 @@ export class Environment {
     this.values.set(name, value);
   }
 
+  getAt(distance: number, name: string): Object {
+    return this.ancestor(distance).values.get(name);
+  }
+
+  assignAt(distance: number, name: Token, value: Object): void {
+    this.ancestor(distance).values.set(name.lexeme, value);
+  }
+
+  ancestor(distance: number): Environment {
+    let environment: Environment = this;
+    for (let i = 0; i < distance; i++) {
+      environment = environment.enclosing;
+    }
+
+    return environment;
+  }
+
   get(name: Token): Object {
     if (this.values.has(name.lexeme)) return this.values.get(name.lexeme);
 

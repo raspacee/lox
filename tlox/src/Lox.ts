@@ -7,6 +7,7 @@ import { TokenType } from "./TokenType.enum";
 import { Parser, Scanner, Stmt } from "./Index";
 import RuntimeError from "./RuntimeError";
 import Interpreter from "./Interpreter";
+import { Resolver } from "./Resolver";
 
 export class Lox {
   private static readonly interpreter = new Interpreter();
@@ -63,6 +64,8 @@ export class Lox {
     let statements: Stmt[] = parser.parse();
 
     if (this.hadError) return;
+    let resolver: Resolver = new Resolver(this.interpreter);
+    resolver.resolveAll(statements);
     this.interpreter.interpret(statements);
   }
 
